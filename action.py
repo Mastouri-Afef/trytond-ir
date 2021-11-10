@@ -520,6 +520,7 @@ class ActionReport(ActionMixin, ModelSQL, ModelView):
         string='Extension', help='Leave empty for the same as template, '
         'see LibreOffice documentation for compatible format')
     module = fields.Char('Module', readonly=True, select=True)
+    _template_cache = MemoryCache('ir.action.report.template', context=False)
     email = fields.Char('Email',
         help='Python dictonary where keys define "to" "cc" "subject"\n'
         "Example: {'to': 'test@example.com', 'cc': 'user@example.com'}")
@@ -686,7 +687,14 @@ class ActionReport(ActionMixin, ModelSQL, ModelView):
                 args.extend((reports, values))
             reports, values = args[:2]
             args = args[2:]
+        cls._template_cache.clear()
         super(ActionReport, cls).write(reports, values, *args)
+
+    def get_template_cached(self):
+        return self._template_cache.get(self.id)
+
+    def set_template_cached(self, template):
+        self._template_cache.set(self.id, template)
 
 
 class ActionActWindow(ActionMixin, ModelSQL, ModelView):
